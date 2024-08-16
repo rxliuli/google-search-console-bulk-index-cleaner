@@ -7,7 +7,7 @@ export default defineConfig({
   },
   manifest: {
     name: 'Google Search Console - Bulk Index Cleaner',
-    description: 'A tool to bulk remove URLs from Google Search Console',
+    description: 'A free Chrome extension for efficient bulk removal of expired indexes from Google Search Console.',
     action: {
       default_title: 'Show Bulk Index Cleaner',
       default_icon: {

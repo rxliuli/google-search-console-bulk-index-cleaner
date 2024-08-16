@@ -6,7 +6,8 @@ Welcome to our Chrome extension. We are committed to protecting your privacy and
 
 ## Information We Collect
 
-Our Chrome extension does not collect any personal information or data from you. We do not store any user data on our servers or any third-party services. The extension operates entirely on your local device and does not send any data to external servers.
+- We do not track the use of the extension at all.
+- We never send information or extension settings outside of your browser.
 
 ## Information Sharing and Disclosure
 
