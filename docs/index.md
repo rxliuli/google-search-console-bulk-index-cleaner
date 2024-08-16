@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: Install Extension
-      link: https://github.com/rxliuli/google-search-console-bulk-index-cleaner/releases/latest
+      link: https://chromewebstore.google.com/detail/madhneifdedhnkbahgfabaecpfajpigi
     - theme: alt
       text: View on GitHub
       link: https://github.com/rxliuli/google-search-console-bulk-index-cleaner
