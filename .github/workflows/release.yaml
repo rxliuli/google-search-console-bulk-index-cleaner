@@ -2,7 +2,7 @@ env:
   DIRECTORY: .output
   PROJECT_NAME: google-search-console-bulk-index-cleaner
 
-name: Deploy
+name: Release
 
 on:
   push:
