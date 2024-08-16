@@ -1,4 +1,4 @@
-import { useEffectOnce, useMount } from 'react-use'
+import { useEffectOnce, useLocalStorage, useMount } from 'react-use'
 import { Button } from './components/ui/button'
 import {
   Dialog,
@@ -14,29 +14,48 @@ import { useToast } from './components/ui/use-toast'
 import { Progress } from './components/ui/progress'
 import { Textarea } from './components/ui/textarea'
 import { parse } from 'csv-parse/browser/esm/sync'
-import { wait } from '@liuli-util/async'
 import { onMessage, removeAllListeners } from '../model/messaging'
 import { InfoIcon, Loader2Icon } from 'lucide-react'
+import { uniq } from 'lodash-es'
+import { ToastAction } from './components/ui/toast'
 
-const getDuplicate = () =>
-  [
-    ...document.querySelectorAll(
-      'div[role="dialog"]:has(> div > [role="heading"])',
-    ),
-  ]
-    .find((it) => {
-      const s = it.querySelector('div > [role="heading"]')?.textContent
-      return (
-        s?.includes('Duplicate request') || s?.includes('URL not in property')
-      )
-    })
-    ?.querySelector('[role="button"]')
+function wait(
+  param?: number | (() => boolean | Promise<boolean>),
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof param === 'number') {
+      setTimeout(resolve, param)
+    } else if (typeof param === 'function') {
+      const timer = setInterval(async () => {
+        if (await param()) {
+          clearInterval(timer)
+          resolve()
+        }
+      }, 100)
+      setTimeout(() => {
+        clearInterval(timer)
+        reject('timeout')
+      }, 10_000)
+    } else {
+      resolve()
+    }
+  })
+}
+
+const getDuplicate = () => {
+  const $dialog = getDialog()
+  const s = $dialog?.querySelector('div > [role="heading"]')?.textContent
+  if (s?.includes('Duplicate request') || s?.includes('URL not in property')) {
+    return $dialog?.querySelector('[role="button"]')
+  }
+}
+
+const getDialog = () =>
+  document.querySelector('div[role="dialog"]:has(> div > [role="heading"])')
 
 async function submitUrl(url: string) {
   // 如果有弹窗，关闭弹窗
-  const $dialog = document.querySelector(
-    'div[role="dialog"]:has(> div > [role="heading"])',
-  )
+  const $dialog = getDialog()
   if ($dialog) {
     $dialog.parentElement?.dispatchEvent(
       new MouseEvent('click', { bubbles: true }),
@@ -50,7 +69,7 @@ async function submitUrl(url: string) {
   }
   $requestButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   await wait(() => !!document.querySelector('[aria-label="New Request"]'))
-  await wait(100)
+  await wait(200)
   const $modal = document.querySelector(
     '[aria-label="New Request"]',
   ) as HTMLElement
@@ -96,8 +115,32 @@ async function submitUrl(url: string) {
   console.log('click duplicate end')
 }
 
+function CleanProgress(props: { url: string; value: number }) {
+  return (
+    <div>
+      <h4 className={'flex items-center'}>
+        <Loader2Icon className="animate-spin mr-2" />
+        Processing:{' '}
+        <a href={props.url} target={'_blank'}>
+          <Button variant={'link'} className={'p-0'}>
+            {props.url}
+          </Button>
+        </a>
+      </h4>
+      <Progress value={props.value} />
+    </div>
+  )
+}
+
 export function App() {
-  const [active, onToggle] = useReducer((s) => !s, false)
+  const [active, onToggle] = useReducer<(p: boolean, a?: boolean) => boolean>(
+    (s, action) => action ?? !s,
+    false,
+  )
+  const [cleanedUrls, setCleanedUrls] = useLocalStorage<string[]>(
+    'cleaned-urls',
+    [],
+  )
   const { toast } = useToast()
 
   const [urls, setUrls] = useState('')
@@ -122,57 +165,71 @@ export function App() {
     )
   }
 
-  function CleanProgress(props: { url: string; value: number }) {
-    return (
-      <div>
-        <h4 className={'flex items-center'}>
-          <Loader2Icon className="animate-spin mr-2" />
-          Processing:{' '}
-          <a href={props.url} target={'_blank'}>
-            <Button variant={'link'} className={'p-0'}>
-              {props.url}
-            </Button>
-          </a>
-        </h4>
-        <Progress value={props.value} />
-      </div>
-    )
-  }
-
   async function onSubmit() {
-    onToggle()
     const list = urls.trim().split('\n').filter(Boolean)
+    let _cleanedUrls = uniq(cleanedUrls)
     const t = toast({
       title: 'Bulk Index Cleaner',
       description: <CleanProgress url={list[0]} value={0} />,
       key: 'Bulk Index Cleaner',
       duration: Number.POSITIVE_INFINITY,
     })
-    for (const it of list) {
+    try {
+      for (const it of list) {
+        if (_cleanedUrls?.includes(it)) {
+          continue
+        }
+        t.update({
+          id: t.id,
+          description: (
+            <CleanProgress
+              url={it}
+              value={(list.indexOf(it) / list.length) * 100}
+            />
+          ),
+        })
+        await submitUrl(it)
+        _cleanedUrls.push(it)
+        setCleanedUrls([..._cleanedUrls])
+        await wait(500)
+      }
       t.update({
         id: t.id,
         description: (
-          <CleanProgress
-            url={it}
-            value={(list.indexOf(it) / list.length) * 100}
-          />
+          <div>
+            <h4 className={'flex items-center text-green-400'}>
+              <InfoIcon className="mr-2" />
+              Processing Complete
+            </h4>
+          </div>
+        ),
+        duration: 2000,
+      })
+    } catch (e) {
+      console.error(e)
+      t.update({
+        id: t.id,
+        description: (
+          <div>
+            <h4 className={'flex items-center text-red-400'}>
+              <InfoIcon className="mr-2" />
+              Processing Error
+            </h4>
+          </div>
+        ),
+        action: (
+          <ToastAction
+            altText={'Try again'}
+            onClick={async () => {
+              t.dismiss()
+              await onSubmit()
+            }}
+          >
+            Try again
+          </ToastAction>
         ),
       })
-      await submitUrl(it)
-      await wait(500)
     }
-    t.update({
-      id: t.id,
-      description: (
-        <div>
-          <h4 className={'flex items-center text-green-400'}>
-            <InfoIcon className="mr-2" />
-            Processing Complete
-          </h4>
-        </div>
-      ),
-      duration: 2000,
-    })
   }
 
   return (
@@ -208,7 +265,13 @@ export function App() {
             </div>
           </form>
           <DialogFooter>
-            <Button type="submit" onClick={onSubmit}>
+            <Button
+              type="submit"
+              onClick={async () => {
+                onToggle()
+                await onSubmit()
+              }}
+            >
               Submit
             </Button>
           </DialogFooter>
