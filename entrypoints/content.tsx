@@ -1,7 +1,9 @@
 import { createRoot } from 'react-dom/client'
 import { App } from './content/App'
-import { createElement } from 'react'
 import './content/style.css'
+import { PortalContainer } from './content/components/3rd/PortalContainer'
+import { Toaster } from './content/components/ui/toaster'
+import ReactDOM from 'react-dom'
 
 export default defineContentScript({
   matches: ['*://search.google.com/*'],
@@ -13,13 +15,19 @@ export default defineContentScript({
       position: 'inline',
       onMount: (container) => {
         const app = document.createElement('div')
-        app.style.position = 'absolute'
-        app.style.zIndex = '9999'
         container.append(app)
 
         // Create a root on the UI container and render a component
         const root = createRoot(app)
-        root.render(createElement(App))
+        root.render(
+          <PortalContainer
+            container={document
+              .querySelector('bulk-index-cleaner')
+              ?.shadowRoot?.querySelector('body')}
+          >
+            <App />
+          </PortalContainer>,
+        )
         return root
       },
       onRemove(root) {

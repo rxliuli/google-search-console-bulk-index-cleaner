@@ -15,13 +15,31 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.9.0",
+    "@liuli-util/async": "^3.7.0",
+    "@radix-ui/react-dialog": "^1.1.1",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-progress": "^1.1.0",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-toast": "^1.2.1",
+    "@webext-core/messaging": "^1.4.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "csv-parse": "^5.5.6",
+    "lucide-react": "^0.427.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.52.2",
+    "react-use": "^17.5.1",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@wxt-dev/module-react": "^1.1.0",
+    "pathe": "^1.1.2",
     "postcss": "^8.4.41",
     "tailwindcss": "^3.4.10",
     "typescript": "^5.5.4",
