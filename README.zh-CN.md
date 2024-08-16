@@ -7,7 +7,6 @@ Google Search Console - Bulk Index Cleaner 是一款免费的 Chrome 扩展，�
 ## 主要功能
 
 - 批量选择和删除过期 URL
-- 一键清理功能，节省时间和精力
 - 用户友好的界面，操作简单直观
 - 支持导入 URL 列表
 

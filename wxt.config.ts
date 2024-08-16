@@ -16,5 +16,6 @@ export default defineConfig({
         '128': 'icon/128.png',
       },
     },
+    permissions: ['activeTab'],
   },
 })
