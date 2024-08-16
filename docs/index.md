@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: Install Extension
-      link: https://chrome.google.com/webstore/detail/your-extension-id
+      link: https://github.com/rxliuli/google-search-console-bulk-index-cleaner/releases/latest
     - theme: alt
       text: View on GitHub
       link: https://github.com/rxliuli/google-search-console-bulk-index-cleaner
@@ -30,3 +30,5 @@ features:
     title: Privacy Focused
     details: All operations performed locally, no data collection or storage
 ---
+
+

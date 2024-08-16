@@ -4,8 +4,9 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'Google Search Console - Bulk Index Cleaner',
   description:
-    'Google Search Console - Bulk Index Cleaner is a free Chrome extension designed for website administrators and SEO professionals. It helps you quickly and efficiently delete expired indexes in bulk from Google Search Console, greatly simplifying the process of website index management.',
+    'A free Chrome extension for efficient bulk removal of expired indexes from Google Search Console.',
   themeConfig: {
+    logo: '/logo.png',
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       {
@@ -49,7 +50,7 @@ export default defineConfig({
       {
         name: 'og:description',
         content:
-          'Google Search Console - Bulk Index Cleaner is a free Chrome extension designed for website administrators and SEO professionals. It helps you quickly and efficiently delete expired indexes in bulk from Google Search Console, greatly simplifying the process of website index management.',
+          'A free Chrome extension for efficient bulk removal of expired indexes from Google Search Console.',
       },
     ],
     ['meta', { name: 'og:image', content: '/logo.png' }],
