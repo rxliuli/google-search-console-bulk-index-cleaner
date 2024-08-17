@@ -2,8 +2,6 @@ import { createRoot } from 'react-dom/client'
 import { App } from './content/App'
 import './content/style.css'
 import { PortalContainer } from './content/components/3rd/PortalContainer'
-import { Toaster } from './content/components/ui/toaster'
-import ReactDOM from 'react-dom'
 
 export default defineContentScript({
   matches: ['*://search.google.com/*'],

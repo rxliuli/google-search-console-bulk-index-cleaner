@@ -42,12 +42,26 @@ function wait(
   })
 }
 
-const getDuplicate = () => {
-  const $dialog = getDialog()
-  const s = $dialog?.querySelector('div > [role="heading"]')?.textContent
-  if (s?.includes('Duplicate request') || s?.includes('URL not in property')) {
-    return $dialog?.querySelector('[role="button"]')
+const closeAlert = () => {
+  const list = [
+    ...document.querySelectorAll(
+      'div[role="dialog"]:has(> div > [role="heading"])',
+    ),
+  ].filter((it) => {
+    const s = it.querySelector('div > [role="heading"]')?.textContent
+    return (
+      s?.includes('Duplicate request') || s?.includes('URL not in property')
+    )
+  })
+  if (list.length === 0) {
+    return false
   }
+  list.forEach((it) => {
+    it.querySelector('div[role="button"]')?.dispatchEvent(
+      new MouseEvent('click', { bubbles: true }),
+    )
+  })
+  return true
 }
 
 const getDialog = () =>
@@ -57,10 +71,12 @@ async function submitUrl(url: string) {
   // 如果有弹窗，关闭弹窗
   const $dialog = getDialog()
   if ($dialog) {
+    console.log('close dialog')
     $dialog.parentElement?.dispatchEvent(
       new MouseEvent('click', { bubbles: true }),
     )
   }
+  console.log('click new request')
   const $requestButton = [
     ...document.querySelectorAll('div > div > span > span'),
   ].find((it) => it.textContent?.includes('New Request'))
@@ -69,11 +85,15 @@ async function submitUrl(url: string) {
   }
   $requestButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   await wait(() => !!document.querySelector('[aria-label="New Request"]'))
-  await wait(200)
+  console.log('input url')
   const $modal = document.querySelector(
     '[aria-label="New Request"]',
   ) as HTMLElement
-  const $input = $modal.querySelector('input[placeholder="Enter URL"]')
+  const getEnterURL = () =>
+    $modal.querySelector('input[placeholder="Enter URL"]')
+  await wait(() => !!getEnterURL())
+  await wait(100)
+  const $input = getEnterURL()
   if (!$input) {
     throw new Error('Not found input')
   }
@@ -93,7 +113,13 @@ async function submitUrl(url: string) {
     [
       ...document.querySelectorAll('div[role="button"]:has(> span > span)'),
     ].find((it) => it.textContent?.includes('Submit request'))
-  await wait(() => !!getSubmit())
+  const isContinue = await Promise.race([
+    wait(() => !!getSubmit()).then(() => true),
+    wait(() => !!closeAlert()).then(() => false),
+  ])
+  if (!isContinue) {
+    return
+  }
   const $submit = getSubmit()
   if (!$submit) {
     throw new Error('Not found Submit request button')
@@ -102,16 +128,16 @@ async function submitUrl(url: string) {
   await wait(() => !getSubmit())
   console.log('click duplicate')
 
-  console.log('before', getDuplicate())
+  console.log('before')
   await wait(
     () =>
-      !!getDuplicate() ||
+      !!closeAlert() ||
       !document.querySelector(
         'div[role="dialog"]:has(> div > [role="heading"])',
       ),
   )
-  console.log('after', getDuplicate())
-  getDuplicate()?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  console.log('after')
+  closeAlert()
   console.log('click duplicate end')
 }
 
@@ -137,7 +163,7 @@ export function App() {
     (s, action) => action ?? !s,
     false,
   )
-  const [cleanedUrls, setCleanedUrls] = useLocalStorage<string[]>(
+  const [_cleanedUrls, setCleanedUrls] = useLocalStorage<string[]>(
     'cleaned-urls',
     [],
   )
@@ -167,7 +193,10 @@ export function App() {
 
   async function onSubmit() {
     const list = urls.trim().split('\n').filter(Boolean)
-    let _cleanedUrls = uniq(cleanedUrls)
+    let cleanedUrls = uniq(
+      JSON.parse(localStorage.getItem('cleaned-urls') ?? '[]'),
+    ) as string[]
+    console.log('cleanedUrls', cleanedUrls)
     const t = toast({
       title: 'Bulk Index Cleaner',
       description: <CleanProgress url={list[0]} value={0} />,
@@ -176,7 +205,7 @@ export function App() {
     })
     try {
       for (const it of list) {
-        if (_cleanedUrls?.includes(it)) {
+        if (cleanedUrls?.includes(it)) {
           continue
         }
         t.update({
@@ -189,8 +218,8 @@ export function App() {
           ),
         })
         await submitUrl(it)
-        _cleanedUrls.push(it)
-        setCleanedUrls([..._cleanedUrls])
+        cleanedUrls.push(it)
+        setCleanedUrls([...cleanedUrls])
         await wait(500)
       }
       t.update({
