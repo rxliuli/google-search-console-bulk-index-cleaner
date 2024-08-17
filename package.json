@@ -2,7 +2,7 @@
   "name": "google-search-console-bulk-index-cleaner",
   "description": "manifest.json description",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
   "scripts": {
     "dev": "wxt",
