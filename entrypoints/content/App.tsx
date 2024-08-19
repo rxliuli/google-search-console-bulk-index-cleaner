@@ -1,4 +1,4 @@
-import { useEffectOnce, useLocalStorage, useMount } from 'react-use'
+import { useEffectOnce, useLocalStorage } from 'react-use'
 import { Button } from './components/ui/button'
 import {
   Dialog,
@@ -192,25 +192,6 @@ export function App() {
         .join('\n'),
     )
   }
-
-  useEffectOnce(() => {
-    const timer = setTimeout(() => {
-      toast({
-        title: 'Bulk Index Cleaner',
-        description: (
-          <CleanProgress
-            url={
-              'https://joplin-utils.rxliuli.com/en-US/api/jpl-vite/index/interfaces/ResolvedPluginConfig.md'
-            }
-            value={50}
-          />
-        ),
-        key: 'Bulk Index Cleaner',
-        duration: Number.POSITIVE_INFINITY,
-      })
-    }, 3_000)
-    return () => clearTimeout(timer)
-  })
 
   async function onSubmit() {
     const list = urls.trim().split('\n').filter(Boolean)
