@@ -76,15 +76,17 @@ async function submitUrl(url: string) {
       new MouseEvent('click', { bubbles: true }),
     )
   }
-  console.log('click new request')
-  const $requestButton = [
-    ...document.querySelectorAll('div > div > span > span'),
-  ].find((it) => it.textContent?.includes('New Request'))
-  if (!$requestButton) {
-    throw new Error('Not found New Request button')
+  if (!document.querySelector('[aria-label="New Request"]')) {
+    console.log('click new request')
+    const $requestButton = [
+      ...document.querySelectorAll('div > div > span > span'),
+    ].find((it) => it.textContent?.includes('New Request'))
+    if (!$requestButton) {
+      throw new Error('Not found New Request button')
+    }
+    $requestButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    await wait(() => !!document.querySelector('[aria-label="New Request"]'))
   }
-  $requestButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-  await wait(() => !!document.querySelector('[aria-label="New Request"]'))
   console.log('input url')
   const $modal = document.querySelector(
     '[aria-label="New Request"]',
@@ -143,18 +145,18 @@ async function submitUrl(url: string) {
 
 function CleanProgress(props: { url: string; value: number }) {
   return (
-    <div>
-      <h4 className={'flex items-center'}>
-        <Loader2Icon className="animate-spin mr-2" />
-        Processing:{' '}
-        <a href={props.url} target={'_blank'}>
+    <>
+      <h4 className={'flex items-center gap-1'}>
+        <Loader2Icon className="animate-spin w-8 h-8" />
+        <span>Processing:</span>
+        <a href={props.url} target={'_blank'} className={'truncate'}>
           <Button variant={'link'} className={'p-0'}>
             {props.url}
           </Button>
         </a>
       </h4>
       <Progress value={props.value} />
-    </div>
+    </>
   )
 }
 
@@ -190,6 +192,25 @@ export function App() {
         .join('\n'),
     )
   }
+
+  useEffectOnce(() => {
+    const timer = setTimeout(() => {
+      toast({
+        title: 'Bulk Index Cleaner',
+        description: (
+          <CleanProgress
+            url={
+              'https://joplin-utils.rxliuli.com/en-US/api/jpl-vite/index/interfaces/ResolvedPluginConfig.md'
+            }
+            value={50}
+          />
+        ),
+        key: 'Bulk Index Cleaner',
+        duration: Number.POSITIVE_INFINITY,
+      })
+    }, 3_000)
+    return () => clearTimeout(timer)
+  })
 
   async function onSubmit() {
     const list = urls.trim().split('\n').filter(Boolean)
