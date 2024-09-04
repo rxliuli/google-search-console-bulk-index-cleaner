@@ -7,6 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from './components/ui/dialog'
 import { Input } from './components/ui/input'
 import { Label } from './components/ui/label'
@@ -266,6 +267,11 @@ export function App() {
   return (
     <>
       <Dialog open={active} onOpenChange={onToggle}>
+        <DialogTrigger asChild={true}>
+          <Button variant={'destructive'} className={'border-2 ml-2'}>
+            Batch Remove Index
+          </Button>
+        </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bulk-index-cleaner">
           <DialogHeader>
             <DialogTitle>Bluk Index Cleaner</DialogTitle>
